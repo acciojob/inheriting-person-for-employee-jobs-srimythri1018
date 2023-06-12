@@ -5,23 +5,49 @@
 </head>
 <body>
 	<script>
-  function Person(name,age) {
-	this.name=name;
-	this.age=age;
-	greet();
-  }
-	function greet() {
-	console.log("Hello, my name is " + Person.name +" , I am "+Person.age +" years old.");
-	}
-	function Employee(name,age,jobTitle) {
-	Person.call(this, name, age);
-		this.jobTitle = jobTitle;
-	}
-	Employee.prototype = Object.create(Person.prototype);
+  // Person prototype
+function Person(name, age) {
+  this.name = name;
+  this.age = age;
+}
+
+Person.prototype.greet = function() {
+  console.log(`Hello, my name is ${this.name} and I am ${this.age} years old.`);
+};
+
+// Employee prototype
+function Employee(name, age, jobTitle) {
+  Person.call(this, name, age);
+  this.jobTitle = jobTitle;
+}
+
+Employee.prototype = Object.create(Person.prototype);
 Employee.prototype.constructor = Employee;
-	Employee.prototype.jobGreet = function() {
+
+Employee.prototype.jobGreet = function() {
   console.log(`Hello, my name is ${this.name}, I am ${this.age} years old, and my job title is ${this.jobTitle}.`);
 };
+
+// Test case
+() => {
+  cy.visit(baseUrl + "/main.html");
+  cy.window().then(win => {
+    const Person = win.Person;
+    const Employee = win.Employee;
+
+    const person = new Person("Alice", 25);
+    const employee = new Employee("Bob", 30, "Manager");
+
+    cy.stub(win.console, "log").as("consoleLog");
+
+    person.greet();
+    cy.get("@consoleLog").should("be.calledWith", `Hello, my name is Alice and I am 25 years old.`);
+
+    employee.jobGreet();
+    cy.get("@consoleLog").should("be.calledWith", `Hello, my name is Bob, I am 30 years old, and my job title is Manager.`);
+  });
+}
+
 	</script>
 </body>
 </html>
